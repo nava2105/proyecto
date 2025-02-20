@@ -7,6 +7,7 @@ from inventario import inventario_programacion_dinamica
 from redes import graficar_red, ruta_mas_corta, flujo_maximo, arbol_expansion_minima, flujo_costo_minimo
 from simplex import crear_tabla_simplex, iterar_simplex, mostrar_valores_finales
 from dos_fases import metodo_dos_fases
+from dual import resolver_metodo_dual
 
 st.set_page_config(page_title="Optimización Empresarial", layout="wide")
 
@@ -34,7 +35,7 @@ if opcion == "Inicio":
 elif opcion == "Programación Lineal":
     st.header("🔹 Optimización de Producción")
 
-    metodo = st.radio("Selecciona el método de resolución", ("Simplex", "Dos Fases"))
+    metodo = st.radio("Selecciona el método de resolución", ("Simplex", "Dos Fases", "Dual"))
     objetivo = st.text_input("Coeficientes de la función objetivo (separados por comas)", "3,5")
     restricciones = st.text_area("Restricciones (cada línea una ecuación, formato: coeficientes separados por comas, signo y valor RHS)", "1,1,<=,10\n2,3,>=,20")
     tipo_objetivo = st.radio("Tipo de optimización", ("max", "min"))
@@ -57,8 +58,11 @@ elif opcion == "Programación Lineal":
                 resultado = mostrar_valores_finales(df_final)
                 resultado['iteraciones'] = iteraciones
 
-            else:
+            elif metodo == "Dos Fases":
                 resultado = metodo_dos_fases(coef_objetivo, restricciones_lista, tipo_objetivo)
+
+            else:
+                resultado = resolver_metodo_dual(coef_objetivo, restricciones_lista, tipo_objetivo)
 
             st.subheader("✅ Resultado")
             st.json(resultado)
