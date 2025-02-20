@@ -2,10 +2,11 @@ import streamlit as st
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
-from programacion_lineal import simplex_paso_a_paso
 from transporte_vogel import transporte_vogel
 from inventario import inventario_programacion_dinamica
 from redes import graficar_red, ruta_mas_corta, flujo_maximo, arbol_expansion_minima, flujo_costo_minimo
+from simplex import crear_tabla_simplex, iterar_simplex, mostrar_valores_finales
+from dos_fases import metodo_dos_fases
 
 st.set_page_config(page_title="Optimización Empresarial", layout="wide")
 
@@ -29,44 +30,42 @@ if opcion == "Inicio":
     Selecciona "Programación Lineal" en el menú lateral para comenzar.
     """)
 
-# 🔹 Programación Lineal con Método Simplex
+# 🔹 Programación Lineal
 elif opcion == "Programación Lineal":
-    st.header("🔹 Optimización de Producción (Método Simplex)")
+    st.header("🔹 Optimización de Producción")
 
-    # Entrada de datos
+    metodo = st.radio("Selecciona el método de resolución", ("Simplex", "Dos Fases"))
     objetivo = st.text_input("Coeficientes de la función objetivo (separados por comas)", "3,5")
-    restricciones = st.text_area("Restricciones (cada línea una ecuación, separados por comas)", "1,1,10\n2,3,20")
+    restricciones = st.text_area("Restricciones (cada línea una ecuación, formato: coeficientes separados por comas, signo y valor RHS)", "1,1,<=,10\n2,3,>=,20")
+    tipo_objetivo = st.radio("Tipo de optimización", ("max", "min"))
 
-    if st.button("Ejecutar Método Simplex"):
+    if st.button("Ejecutar Método"):
         try:
-            coef_objetivo = list(map(float, objetivo.split(",")))
-            restricciones_lista = [list(map(float, r.split(","))) for r in restricciones.strip().split("\n")]
+            coef_objetivo = {f"x{i+1}": float(val) for i, val in enumerate(objetivo.split(","))}
+            restricciones_lista = []
 
-            # 🔹 Validar que cada restricción tiene el mismo número de coeficientes
-            num_variables = len(coef_objetivo)
-            for r in restricciones_lista:
-                if len(r) != num_variables + 1:
-                    raise ValueError("Cada restricción debe tener un número de coeficientes igual a la cantidad de variables más uno (para el recurso disponible).")
+            for r in restricciones.strip().split("\n"):
+                valores = r.split(",")
+                coef = {f"x{i+1}": float(val) for i, val in enumerate(valores[:-2])}
+                signo = valores[-2]
+                rhs = float(valores[-1])
+                restricciones_lista.append({"coef": coef, "signo": signo, "rhs": rhs})
 
-            # 🔹 Separar matriz de coeficientes (A) y valores de recursos (b)
-            A = [r[:-1] for r in restricciones_lista]  # Coeficientes de las restricciones
-            b = [r[-1] for r in restricciones_lista]  # Valores de los recursos disponibles
+            if metodo == "Simplex":
+                df = crear_tabla_simplex(coef_objetivo, restricciones_lista, tipo_objetivo)
+                df_final, iteraciones = iterar_simplex(df, tipo_objetivo)
+                resultado = mostrar_valores_finales(df_final)
+                resultado['iteraciones'] = iteraciones
 
-            # 🔹 Ejecutar el método Simplex
-            resultado = simplex_paso_a_paso(coef_objetivo, A, b)
+            else:
+                resultado = metodo_dos_fases(coef_objetivo, restricciones_lista, tipo_objetivo)
 
-            # 🔹 Mostrar pasos detallados
-            if "pasos_detallados" in resultado:
-                st.subheader("📝 Pasos detallados del método Simplex")
-                for paso in resultado["pasos_detallados"]:
-                    st.write(paso)
-
-            # 🔹 Mostrar solución óptima
-            st.subheader("✅ Solución Óptima")
+            st.subheader("✅ Resultado")
             st.json(resultado)
 
         except Exception as e:
             st.error(f"⚠ Error en el procesamiento de los datos: {e}")
+
 
 # 🔹 Problema de Transporte con Método de Vogel
 if opcion == "Problema de Transporte":
