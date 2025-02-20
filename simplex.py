@@ -1,5 +1,4 @@
 import pandas as pd
-from tabulate import tabulate
 
 def crear_tabla_simplex(objetivo, restricciones, tipo_objetivo='max'):
     variables = list(objetivo.keys())
@@ -118,22 +117,3 @@ def mostrar_valores_finales(df):
     resultado['estado'] = "Optimización completada exitosamente"
 
     return resultado
-
-if __name__ == "__main__":
-    objetivo = {'x1': 5, 'x2': 2}
-    tipo_objetivo = 'max'
-
-    restricciones = [
-        {'coef': {'x1': 1, 'x2': 1}, 'signo': '<=', 'rhs': 4},
-        {'coef': {'x1': 1, 'x2': -1}, 'signo': '>=', 'rhs': 2},
-        {'coef': {'x1': 1, 'x2': 3}, 'signo': '=', 'rhs': 6}
-    ]
-
-    df = crear_tabla_simplex(objetivo, restricciones, tipo_objetivo)
-
-    df_final, iteraciones = iterar_simplex(df, tipo_objetivo)
-
-    resultado = mostrar_valores_finales(df_final)
-    resultado['iteraciones'] = iteraciones
-
-    print(resultado)

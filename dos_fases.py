@@ -135,15 +135,3 @@ def mostrar_valores_finales(df):
     resultado['estado'] = "Optimización completada exitosamente"
 
     return resultado
-
-
-if __name__ == "__main__":
-    objetivo = {'x1': 5, 'x2': 2}
-    restricciones = [
-        {'coef': {'x1': 1, 'x2': 1}, 'signo': '<=', 'rhs': 4},
-        {'coef': {'x1': 1, 'x2': -1}, 'signo': '>=', 'rhs': 2},
-        {'coef': {'x1': 1, 'x2': 3}, 'signo': '=', 'rhs': 6}
-    ]
-
-    resultado = metodo_dos_fases(objetivo, restricciones, tipo_objetivo='max')
-    print(resultado)
